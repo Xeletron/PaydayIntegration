@@ -54,8 +54,8 @@ const secret = Buffer.from(getOption('secret', 'EXT_SECRET'), 'base64');
 const clientId = getOption('clientId', 'EXT_CLIENT_ID');
 
 const serverOptions = {
-  host: 'localhost',
-  port: 8080,
+  host: process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
+  port: process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
   routes: {
     cors: {
       origin: ['*'],
