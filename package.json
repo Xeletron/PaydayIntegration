@@ -1,0 +1,25 @@
+{
+  "name": "payday-integration",
+  "version": "1.0.0",
+  "description": "Twitch Integration with Payday 2",
+  "main": "index.js",
+  "scripts": {
+    "cert": "node bin/generate_cert.js server",
+    "start": "node backend -c \"js597m7tbf5l0g5vzcqgi3v8t7t5y2\" -s \"szLZYAaFjFGEL68RyfhXi6hOQ5oIDanyfluO/PAo01A=\" -o \"144216668\""
+  },
+  "keywords": [
+    "twitch",
+    "extension"
+  ],
+  "author": "Xeletron",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "boom": "^7.2.0",
+    "commander": "^2.15.0",
+    "hapi": "^17.8.4",
+    "inert": "^5.1.0",
+    "jsonwebtoken": "^8.2.0",
+    "request": "^2.85.0",
+    "selfsigned": "^1.10.2"
+  }
+}
