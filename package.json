@@ -4,7 +4,7 @@
   "description": "Twitch Integration with Payday 2",
   "main": "index.js",
   "scripts": {
-    "start": "node backend"
+    "start": "node backend -c \"js597m7tbf5l0g5vzcqgi3v8t7t5y2\" -s \"szLZYAaFjFGEL68RyfhXi6hOQ5oIDanyfluO/PAo01A=\" -o \"144216668\""
   },
   "keywords": [
     "twitch",
