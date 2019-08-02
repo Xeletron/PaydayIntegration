@@ -23,6 +23,7 @@ const bearerPrefix = 'Bearer ';             // HTTP authorization headers have t
 const cooldownData = {};
 const channelCooldowns = {};                // rate limit compliance
 let userCooldowns = {};                     // spam prevention
+let ingame = true;
 
 const STRINGS = {
   secretEnv: usingValue('secret'),
@@ -76,15 +77,26 @@ const server = new Hapi.Server(serverOptions);
 
   server.route({
     method: 'POST',
-    path: '/payday/executeCommand',
+    path: '/execute',
     handler: commandHandler,
   });
 
+  server.route({
+    method: 'POST',
+    path: '/setGameInfo',
+    handler: setGameInfo,
+  });
 
   server.route({
     method: 'GET',
-    path: '/payday/query',
+    path: '/cooldowns',
     handler: QueryHandler,
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/commandStack',
+    handler: retrieveStack,
   });
 
   // Start the server.
@@ -136,36 +148,50 @@ function verifyAndDecode(header) {
 }
 
 function commandHandler(req) {
-  // Verify all requests.
-  const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId, user_id: userId } = payload;
+  if (ingame == "1"){
+      // Verify all requests.
+      const payload = verifyAndDecode(req.headers.authorization);
+      const { channel_id: channelId, opaque_user_id: opaqueUserId, user_id: userId } = payload;
 
-  let data = req.payload;
-  let commandData = {command: data.command, time: Date.now() / 1000 + 20, user: data.user};
-  // Bot abuse prevention:  don't allow a user to spam the button.
-  if (userIsInCooldown(opaqueUserId)) {
-    throw Boom.tooManyRequests(STRINGS.cooldown);
-  }
-  verboseLog(STRINGS.executingCommand, channelId, opaqueUserId);
-
-
-  if (!cooldownData[channelId])
-  cooldownData[channelId] = {};
-  
-  cooldownData[channelId][data.command] = commandData;
+      let data = req.payload;
+      let commandData = {command: data.command, time: Date.now() / 1000 + 20, user: data.user};
+      // Bot abuse prevention:  don't allow a user to spam the button.
+      if (userIsInCooldown(opaqueUserId)) {
+        throw Boom.tooManyRequests(STRINGS.cooldown);
+      }
+      verboseLog(STRINGS.executingCommand, channelId, opaqueUserId);
 
 
-  attemptBroadcast(channelId, data.command);
+      if (!cooldownData)
+      cooldownData = {};
+      
+      cooldownData[data.command] = commandData;
 
-  return cooldownData[channelId];
+
+      attemptBroadcast(channelId, data.command);
+
+      return cooldownData;
+    }
+    return false;
 }
-
+function setGameInfo(req) {
+  ingame = req.payload.ingame;
+  verboseLog(req.payload);
+  const commandData = cooldownData || {};
+  return commandData;
+}
 function QueryHandler(req) {
   // Verify all requests.
   const payload = verifyAndDecode(req.headers.authorization);
 
   const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
-  const commandData = cooldownData[channelId] || {};
+  const commandData = cooldownData || {};
+  verboseLog(STRINGS.send, commandData, opaqueUserId);
+  return commandData;
+}
+function retrieveStack(req) {
+  const { channel_id: channelId, opaque_user_id: opaqueUserId } = req;
+  const commandData = cooldownData || {};
   verboseLog(STRINGS.send, commandData, opaqueUserId);
   return commandData;
 }
@@ -187,7 +213,7 @@ function sendBroadcast(channelId, commandName) {
   };
 
   // Create the POST body for the Twitch API request.
-  const commandData = JSON.stringify(cooldownData[channelId][commandName]) || "{time: 0, command: commandName, user: twitch}";
+  const commandData = JSON.stringify(cooldownData[commandName]) || "{time: 0, command: commandName, user: twitch}";
   const body = JSON.stringify({
     content_type: 'application/json',
     message: commandData,
