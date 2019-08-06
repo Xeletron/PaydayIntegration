@@ -1,0 +1,74 @@
+{
+  "arrest": {
+    "name": "Apply handcuffs",
+    "des": "Put the streamer in handcuffs",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": true
+  },
+  "tase": {
+    "name": "Shock therapy",
+    "des": "Tase the streamer for a few seconds",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": true
+  },
+  "cloak": {
+    "name": "Kick in the head",
+    "des": "Send an invisible cloaker after the streamer",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": true
+  },
+  "flash": {
+    "name": "Spawn flashbangs",
+    "des": "Spawn a bunch of flashbangs all around players in loud / Blind the streamer in stealth",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": false
+  },
+  "cheers": {
+    "name": "Buy a drink",
+    "des": "Get the streamer slightly drunk, the effect stacks so coordinate with your fellow viewers",
+    "price": 1,
+    "global": 1,
+    "user": 120,
+    "sub": false,
+    "loud": false
+  },
+  "jammdrills": {
+    "name": "Jamm drills",
+    "des": "Break all the active drills on the map. All of them",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": false
+  },
+  "rewind": {
+    "name": "Rewind",
+    "des": "Send the streamer back in time by 8 seconds",
+    "price": 10,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": false
+  },
+  "special": {
+    "name": "Become special",
+    "des": "The next available special unit that spawns will have your name and will focus on killing the streamer",
+    "price": 5,
+    "global": 60,
+    "user": 120,
+    "sub": true,
+    "loud": true
+  }
+}
