@@ -71,7 +71,7 @@ function createRoute(method, path, handler) {
 }
 
 function loadCommandData() {
-  let raw = fs.readFileSync('../config.json');
+  let raw = fs.readFileSync(path.resolve(__dirname, '..')+'/config.json');
   commandData = JSON.parse(raw);
 }
 
