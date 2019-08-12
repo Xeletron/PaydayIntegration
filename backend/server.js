@@ -206,8 +206,8 @@ function sendBroadcast(channelId, message) {
 function clientHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { user_id: userID, opaque_user_id: opaqueUserId } = payload;
-  console.log(`Sending data to ${userID}`);
-  let username = getUserName(userID);
+  console.log(`Sending data to ${opaqueUserId}`);
+  let username = getUserName(opaqueUserId.substr(1));
   return new Promise((resolve, reject) => {
     username.then((value) => {
       let reply = {commandData: commandData, gameData: gameData, cd: userCooldowns[opaqueUserId], name: value, money: 100};
