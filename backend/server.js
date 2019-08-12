@@ -9,14 +9,13 @@ const request = require('request');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
-const userCooldownMs = 1000;                // maximum input rate per user to prevent bot abuse
+const userCooldownMs = 30;                // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
-const channelCooldownMs = 1000;             // maximum broadcast rate per channel
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
-const userHeader = { 'Client-ID': 'js597m7tbf5l0g5vzcqgi3v8t7t5y2' };
+const clientID = 'js597m7tbf5l0g5vzcqgi3v8t7t5y2';
+const userHeader = { 'Client-ID': clientID };
 let userCooldowns = {};    
 let commandData = {};
-let commandStack = [];
 let gameData = {type: 0};
 
 ext.
@@ -53,12 +52,19 @@ const server = new Hapi.Server(serverOptions);
   
   loadCommandData();
   createRoute('POST', '/execute', executeHandler);
+  createRoute('POST', '/coordinator', coordinatorHandler);
   createRoute('GET', '/retrieve', clientHandler);
 
   await server.start();
   console.log("Server running at %s", server.info.uri);
 
-  setInterval(() => { userCooldowns = {}; }, userCooldownClearIntervalMs);
+  setInterval(() => { 
+    let now = Date.now() / 1000;
+    Object.keys(userCooldowns).forEach(function (item) {
+      if(userCooldowns[item] < now)
+        delete userCooldowns[item];
+    });
+   }, userCooldownClearIntervalMs);
 
 })();
 
@@ -117,7 +123,7 @@ function makeServerToken(channelId) {
 function userIsInCooldown(opaqueUserId) {
   // Check if the user is in cool-down.
   const cooldown = userCooldowns[opaqueUserId];
-  const now = Date.now();
+  const now = Date.now() / 1000;
   if (cooldown && cooldown > now) {
     return true;
   }
@@ -144,16 +150,16 @@ function executeHandler(req) {
   let payloadData = req.payload;
   let command = payloadData.command
   let time = Date.now() / 1000;
-  let client = payloadData.uid;
+  let client = payloadData.name;
 
-  // Bot abuse prevention:  don't allow a user to spam the button.
-  if (userIsInCooldown(opaqueUserId)) {
-    throw Boom.tooManyRequests("Too many requests, please wait");
-  }
+  if(gameData.type == 0 || (gameData.type == 1 && commandData[command].loud))
+    throw Boom.methodNotAllowed("Game state dissallows command");
   // Dont execute if command is on cooldown
   if(isCommandOnCooldown(command, client, time))
     throw Boom.notAcceptable("Command is still on cooldown");
-
+  if (userIsInCooldown(opaqueUserId)) {
+      throw Boom.tooManyRequests("Too many requests, please wait");
+    }
   console.log(`Executing ${command}`);
 
   commandData[command].time = time;
@@ -162,8 +168,7 @@ function executeHandler(req) {
   let message = {command: command, time: time, client: client};
 
   sendBroadcast(channelId, message);
-  //commandStack.push(message);
-  return message;
+  return userCooldowns[opaqueUserId]
 }
 
 function sendBroadcast(channelId, message) {
@@ -200,20 +205,55 @@ function sendBroadcast(channelId, message) {
 
 function clientHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
-  const { user_id: userID } = payload;
+  const { user_id: userID, opaque_user_id: opaqueUserId } = payload;
   console.log(`Sending data to ${userID}`);
-  let reply = {commandData: commandData, gameData: gameData};
-  return reply;
+  let username = getUserName(userID);
+  return new Promise((resolve, reject) => {
+    username.then((value) => {
+      let reply = {commandData: commandData, gameData: gameData, cd: userCooldowns[opaqueUserId], name: value, money: 100};
+      resolve(reply);
+    });
+  })
 }
-
 function getUserName(uid){
-  var username = "";
-  request({url:`https://api.twitch.tv/helix/users?id=${uid}`, method: 'GET', headers: userHeader}, function(err, res, body) {
-    if(!err){
+  return new Promise((resolve, reject) => {
+    request({url:`https://api.twitch.tv/helix/users?id=${uid}`, method: 'GET', headers: userHeader}, function(err, res, body) {
+      if(err)
+        reject();
+
       let parsed = JSON.parse(body);
       let [user] = parsed.data;
-      username = user.display_name
-    }
+      resolve(user.display_name)
+      
+    });
   });
-  return username;
+}
+
+function makeListenToken(channelId) {
+  const payload = {
+    exp: Math.floor(Date.now() / 1000) + serverTokenDurationSec,
+    channel_id: channelId,
+    user_id: ownerId,
+    role: 'external',
+    pubsub_perms: {
+      listen: ['*']
+    },
+  };
+  return jsonwebtoken.sign(payload, secret, { algorithm: 'HS256' });
+}
+function coordinatorHandler(req) {
+  if (!req.headers.authorization || req.headers.authorization != clientID)
+    throw Boom.unauthorized("Invalid authorization header");
+  let message = req.payload;
+  if (message.game) {
+    gameData = message.game;
+    let msg = {gameData: gameData};
+    sendBroadcast(message.channel, msg);
+  }
+
+  let reply = {};
+  if(message.needToken)
+    reply = {token: makeListenToken(message.channel)};
+
+  return JSON.stringify(reply)
 }

@@ -20,7 +20,7 @@
   "cloak": {
     "name": "Kick in the head",
     "des": "Send an invisible cloaker after the streamer",
-    "price": 10,
+    "price": 20,
     "global": 60,
     "user": 120,
     "sub": true,
@@ -29,7 +29,7 @@
   "flash": {
     "name": "Spawn flashbangs",
     "des": "Spawn a bunch of flashbangs all around players in loud / Blind the streamer in stealth",
-    "price": 10,
+    "price": 15,
     "global": 60,
     "user": 120,
     "sub": true,
@@ -56,7 +56,7 @@
   "rewind": {
     "name": "Rewind",
     "des": "Send the streamer back in time by 8 seconds",
-    "price": 10,
+    "price": 25,
     "global": 60,
     "user": 120,
     "sub": true,
