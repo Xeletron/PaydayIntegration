@@ -16,7 +16,7 @@ const clientID = 'js597m7tbf5l0g5vzcqgi3v8t7t5y2';
 const userHeader = { 'Client-ID': clientID };
 let userCooldowns = {};    
 let commandData = {};
-let gameData = {type: 0};
+let gameData = {type: 2};
 
 ext.
   version(require('../package.json').version).
@@ -206,6 +206,8 @@ function sendBroadcast(channelId, message) {
 function clientHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
   const { user_id: userID, opaque_user_id: opaqueUserId } = payload;
+  if (!userID)
+    throw Boom.badRequest();
   console.log(`Sending data to ${userID}`);
   let username = getUserName(userID);
   return new Promise((resolve, reject) => {
@@ -223,7 +225,8 @@ function getUserName(uid){
 
       let parsed = JSON.parse(body);
       let [user] = parsed.data;
-      resolve(user.display_name)
+      resolve(user.display_name);
+      
       
     });
   });
