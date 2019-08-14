@@ -9,7 +9,7 @@ const request = require('request');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
-const userCooldownMs = 30;                // maximum input rate per user to prevent bot abuse
+const userCooldownMs = 1;                // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
 const clientID = 'js597m7tbf5l0g5vzcqgi3v8t7t5y2';
