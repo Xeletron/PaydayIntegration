@@ -9,14 +9,14 @@ const request = require('request');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const serverTokenDurationSec = 30;          // our tokens for pubsub expire after 30 seconds
-const userCooldownMs = 1;                // maximum input rate per user to prevent bot abuse
+const userCooldownMs = 30;                // maximum input rate per user to prevent bot abuse
 const userCooldownClearIntervalMs = 60000;  // interval to reset our tracking object
 const bearerPrefix = 'Bearer ';             // HTTP authorization headers have this prefix
 const clientID = 'js597m7tbf5l0g5vzcqgi3v8t7t5y2';
 const userHeader = { 'Client-ID': clientID };
 let userCooldowns = {};    
 let commandData = {};
-let gameData = {type: 2};
+let gameData = {type: 0};
 
 ext.
   version(require('../package.json').version).
@@ -145,15 +145,16 @@ function isCommandOnCooldown(command, client, time){
 
 function executeHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
-  const { channel_id: channelId, opaque_user_id: opaqueUserId } = payload;
+  const { channel_id: channelId, user_id: userID, opaque_user_id: opaqueUserId } = payload;
 
   let payloadData = req.payload;
   let command = payloadData.command
   let time = Date.now() / 1000;
   let client = payloadData.name;
+  let anon = payloadData.anon;
 
   if(gameData.type == 0 || (gameData.type == 1 && commandData[command].loud))
-    throw Boom.methodNotAllowed("Game state dissallows command");
+    throw Boom.methodNotAllowed("Game state disallows command");
   // Dont execute if command is on cooldown
   if(isCommandOnCooldown(command, client, time))
     throw Boom.notAcceptable("Command is still on cooldown");
@@ -164,10 +165,16 @@ function executeHandler(req) {
 
   commandData[command].time = time;
   commandData[command].client = client;
+  let userInfo = GetUserInfo(userID, channelId);
+  userInfo.then((value) => {
+    let color = value[1];
+    let sub = value[2];
+    if (commandData[command].sub == true && sub == false)
+      throw Boom.notAcceptable("User isnt a subscriber");
+    let message = {command: command, time: time, client: client, color: color, anon: anon};
+    sendBroadcast(channelId, message);
+  });
 
-  let message = {command: command, time: time, client: client};
-
-  sendBroadcast(channelId, message);
   return userCooldowns[opaqueUserId]
 }
 
@@ -205,33 +212,48 @@ function sendBroadcast(channelId, message) {
 
 function clientHandler(req) {
   const payload = verifyAndDecode(req.headers.authorization);
-  const { user_id: userID, opaque_user_id: opaqueUserId } = payload;
+  const {channel_id: channelId, user_id: userID, opaque_user_id: opaqueUserId } = payload;
   if (!userID)
     throw Boom.badRequest();
   console.log(`Sending data to ${userID}`);
-  let username = getUserName(userID);
+  let userInfo = GetUserInfo(userID, channelId);
   return new Promise((resolve, reject) => {
-    username.then((value) => {
-      let reply = {commandData: commandData, gameData: gameData, cd: userCooldowns[opaqueUserId], name: value, money: 100};
+    userInfo.then((value) => {
+      let username = value[0];
+      let sub = value[2];
+      let reply = {commandData: commandData, gameData: gameData, cd: userCooldowns[opaqueUserId], userData: {name: username, sub: sub, money: 100}};
       resolve(reply);
     });
   })
 }
-function getUserName(uid){
+
+function GetUserInfo(uid, channelId){
   return new Promise((resolve, reject) => {
-    request({url:`https://api.twitch.tv/helix/users?id=${uid}`, method: 'GET', headers: userHeader}, function(err, res, body) {
+    request({url:`https://api.twitch.tv/kraken/users/${uid}/chat/channels/${channelId}?api_version=5`, method: 'GET', headers: userHeader}, function(err, res, body) {
       if(err)
         reject();
-
+      
       let parsed = JSON.parse(body);
-      let [user] = parsed.data;
-      resolve(user.display_name);
-      
-      
+      let name = parsed.display_name;
+      let color = parsed.color;
+      let sub = IsSub(parsed.badges);
+      resolve([name, color, sub]);
     });
   });
 }
+function IsSub(data)
+{
+  if(data==undefined)
+    return false
 
+  for (i in data) {
+    let badge = data[i];
+    let id = badge.id;
+    if (id == 'subscriber' || id == 'broadcaster')
+      return true
+  }
+  return false
+}
 function makeListenToken(channelId) {
   const payload = {
     exp: Math.floor(Date.now() / 1000) + serverTokenDurationSec,
@@ -244,6 +266,7 @@ function makeListenToken(channelId) {
   };
   return jsonwebtoken.sign(payload, secret, { algorithm: 'HS256' });
 }
+
 function coordinatorHandler(req) {
   if (!req.headers.authorization || req.headers.authorization != clientID)
     throw Boom.unauthorized("Invalid authorization header");

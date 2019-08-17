@@ -14,7 +14,7 @@
     "price": 10,
     "global": 60,
     "user": 120,
-    "sub": true,
+    "sub": false,
     "loud": true
   },
   "cloak": {
@@ -32,10 +32,10 @@
     "price": 15,
     "global": 60,
     "user": 120,
-    "sub": true,
+    "sub": false,
     "loud": false
   },
-  "cheers": {
+  "drunk": {
     "name": "Buy a drink",
     "des": "Get the streamer slightly drunk, the effect stacks so coordinate with your fellow viewers",
     "price": 1,
@@ -44,13 +44,13 @@
     "sub": false,
     "loud": false
   },
-  "jammdrills": {
+  "drills": {
     "name": "Jamm drills",
     "des": "Break all the active drills on the map. All of them",
     "price": 10,
     "global": 60,
     "user": 120,
-    "sub": true,
+    "sub": false,
     "loud": false
   },
   "rewind": {
