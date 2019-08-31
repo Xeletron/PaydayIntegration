@@ -35,15 +35,6 @@
     "sub": false,
     "loud": false
   },
-  "drunk": {
-    "name": "Buy a drink",
-    "des": "Get the streamer slightly drunk, the effect stacks so coordinate with your fellow viewers",
-    "price": 1,
-    "global": 1,
-    "user": 120,
-    "sub": false,
-    "loud": false
-  },
   "drills": {
     "name": "Jamm drills",
     "des": "Break all the active drills on the map. All of them",
@@ -61,14 +52,5 @@
     "user": 120,
     "sub": true,
     "loud": false
-  },
-  "special": {
-    "name": "Become special",
-    "des": "The next available special unit that spawns will have your name and will focus on killing the streamer",
-    "price": 5,
-    "global": 60,
-    "user": 120,
-    "sub": true,
-    "loud": true
   }
 }
