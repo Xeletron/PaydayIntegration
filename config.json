@@ -1,19 +1,19 @@
-{
+m{
   "arrest": {
     "name": "Apply handcuffs",
     "des": "Put the streamer in handcuffs",
     "price": 10,
-    "global": 60,
-    "user": 120,
-    "sub": true,
+    "global": 180,
+    "user": 300,
+    "sub": false,
     "loud": true
   },
   "tase": {
     "name": "Shock therapy",
     "des": "Tase the streamer for a few seconds",
     "price": 10,
-    "global": 60,
-    "user": 120,
+    "global": 180,
+    "user": 300,
     "sub": false,
     "loud": true
   },
@@ -21,36 +21,45 @@
     "name": "Kick in the head",
     "des": "Send an invisible cloaker after the streamer",
     "price": 20,
-    "global": 60,
-    "user": 120,
-    "sub": true,
+    "global": 180,
+    "user": 300,
+    "sub": false,
     "loud": true
   },
   "flash": {
     "name": "Spawn flashbangs",
     "des": "Spawn a bunch of flashbangs all around players in loud / Blind the streamer in stealth",
     "price": 15,
-    "global": 60,
-    "user": 120,
-    "sub": false,
+    "global": 300,
+    "user": 480,
+    "sub": true,
     "loud": false
   },
   "drills": {
     "name": "Jamm drills",
     "des": "Break all the active drills on the map. All of them",
     "price": 10,
-    "global": 60,
-    "user": 120,
-    "sub": false,
+    "global": 300,
+    "user": 480,
+    "sub": true,
     "loud": false
   },
   "rewind": {
     "name": "Rewind",
     "des": "Send the streamer back in time by 8 seconds",
     "price": 25,
-    "global": 60,
-    "user": 120,
+    "global": 300,
+    "user": 480,
     "sub": true,
     "loud": false
+  },
+  "package": {
+    "name": "Action Package",
+    "des": "Trigger a random overpowered ultimate ability. Things can get wild",
+    "price": 200,
+    "global": 900,
+    "user": 1200,
+    "sub": true,
+    "loud": true
   }
 }
