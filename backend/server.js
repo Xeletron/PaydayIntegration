@@ -54,6 +54,8 @@ const server = new Hapi.Server(serverOptions);
   createRoute('POST', '/execute', executeHandler);
   createRoute('POST', '/coordinator', coordinatorHandler);
   createRoute('GET', '/retrieve', clientHandler);
+  createRoute('GET', '/config', sendConfig);
+  createRoute('POST', '/config', saveConfig);
 
   await server.start();
   console.log("Server running at %s", server.info.uri);
@@ -81,6 +83,15 @@ function loadCommandData() {
   commandData = JSON.parse(raw);
 }
 
+function sendConfig() {
+  return JSON.stringify(commandData);
+}
+function saveConfig(data) {
+  commandData = data.payload;
+  let raw = JSON.stringify(commandData);
+  fs.writeFile(path.resolve(__dirname, '..')+'/config.json', raw, 'utf8', function(err){if (err)console.log(err)});
+  return true;
+}
 function getOption(optionName, environmentName) {
   const option = (() => {
     if (ext[optionName]) {
